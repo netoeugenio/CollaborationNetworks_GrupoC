@@ -64,11 +64,11 @@ for (int[] aresta : arestas) {
     }
 }
 
-            StdOut.println("✅ Leitura e construção do Grafo concluídas!\n");
+            StdOut.println("Leitura e construção do Grafo concluidas!\n");
 
             StdOut.println("ESTATISTICAS DO GRAFO:");
             StdOut.println("Tamanho do Array de Vertices: " + grafo.V());
-            StdOut.println("Número de Arestas: " + grafo.E());
+            StdOut.println("Numero de Arestas: " + grafo.E());
 
             // ==========================
             // 3. Cálculo dos graus
@@ -103,8 +103,8 @@ double grauMedio = (2.0 * grafo.E()) / verticesReais;
 double densidade = (2.0 * grafo.E()) / 
                    (verticesReais * (verticesReais - 1));
 
-StdOut.println("\nMÉTRICAS INICIAIS:");
-StdOut.printf("Grau médio: %.4f\n", grauMedio);
+StdOut.println("\nMetricas  Inicias:");
+StdOut.printf("Grau medio: %.4f\n", grauMedio);
 StdOut.printf("Densidade: %.6f\n", densidade);
 
             StdOut.println("Vertices REAIS: " + verticesReais);
