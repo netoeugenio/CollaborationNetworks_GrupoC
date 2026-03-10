@@ -5,7 +5,7 @@ from scipy.special import zeta
 from scipy.optimize import minimize_scalar
 
 # =========================
-# 1. Carregamento dos dados
+# 1. Carregar dados
 # =========================
 df = pd.read_csv("distribuicao_graus.csv")
 graus = df['grau'].values
@@ -13,98 +13,93 @@ quantidades = df['quantidade'].values
 total_nos = quantidades.sum()
 
 # =========================
-# 2. Função de ajuste da Lei de Potência com busca automática de xmin
+# 2. Função para encontrar o melhor xmin e α
 # =========================
-def executar_analise_mle_ks_automatico(graus, quantidades, min_n_cauda=15):
-    """
-    Ajusta a distribuição de graus a uma Lei de Potência.
-    Busca automaticamente o melhor xmin que minimiza a diferença KS.
-    """
-    melhor_erro_ks = float('inf')
-    melhor_alpha_mle = 0
-    melhor_xmin_corte = 0
-    n_cauda_final = 0
+def buscar_xmin_alpha(graus, quantidades, min_n_cauda=15):
+    # Variáveis para guardar o melhor resultado
+    melhor_xmin = None
+    melhor_alpha = None
+    menor_erro_ks = float('inf')
+    nos_cauda_final = 0
 
-    # Testa todos os valores únicos de grau como candidatos a xmin
-    candidatos_xmin = np.unique(graus)
+    # Testar todos os valores únicos de grau como candidatos a xmin
+    candidatos = np.unique(graus)
 
-    for xmin_teste in candidatos_xmin:
-        # Seleciona apenas os nós com grau >= xmin_teste
-        selecao = graus >= xmin_teste
-        k_cauda, n_cauda = graus[selecao], quantidades[selecao]
-        N = n_cauda.sum()
+    for xmin in candidatos:
+        # Seleciona apenas os nós com grau >= xmin
+        indices_cauda = graus >= xmin
+        graus_cauda = graus[indices_cauda]
+        contagem_cauda = quantidades[indices_cauda]
+        N = contagem_cauda.sum()
+        
+        # Pular caudas muito pequenas
         if N < min_n_cauda:
-            continue  # ignora caudas muito pequenas
+            continue
+        
+        # Função de verossimilhança para α
+        def verossimilhanca(alpha):
+            return N * np.log(zeta(alpha, xmin)) + alpha * np.sum(contagem_cauda * np.log(graus_cauda))
+        
+        # Encontrar α que minimiza a função de verossimilhança
+        resultado = minimize_scalar(verossimilhanca, bounds=(1.1, 10), method='bounded')
+        alpha = resultado.x
+        
+        # Comparar modelo com dados usando distância KS
+        ordem = np.argsort(graus_cauda)
+        graus_ord = graus_cauda[ordem]
+        cont_ord = contagem_cauda[ordem]
+        observado = np.cumsum(cont_ord[::-1])[::-1] / N
+        esperado = zeta(alpha, graus_ord) / zeta(alpha, xmin)
+        distancia_ks = np.max(np.abs(observado - esperado))
+        
+        # Atualizar melhor ajuste
+        if distancia_ks < menor_erro_ks:
+            menor_erro_ks = distancia_ks
+            melhor_xmin = xmin
+            melhor_alpha = alpha
+            nos_cauda_final = N
 
-        # =========================
-        # Estima alpha via MLE
-        # =========================
-        def calculo_mle(a):
-            return N * np.log(zeta(a, xmin_teste)) + a * np.sum(n_cauda * np.log(k_cauda))
-
-        solucao = minimize_scalar(calculo_mle, bounds=(1.1, 10), method='bounded')
-        alpha_mle = solucao.x
-
-        # =========================
-        # Calcula distância KS
-        # =========================
-        ordenar = np.argsort(k_cauda)
-        k_f, n_f = k_cauda[ordenar], n_cauda[ordenar]
-        observado_acumulado = np.cumsum(n_f[::-1])[::-1] / N
-        teorico_modelo = zeta(alpha_mle, k_f) / zeta(alpha_mle, xmin_teste)
-        distancia_ks = np.max(np.abs(observado_acumulado - teorico_modelo))
-
-        # =========================
-        # Atualiza melhor ajuste
-        # =========================
-        if distancia_ks < melhor_erro_ks:
-            melhor_erro_ks = distancia_ks
-            melhor_alpha_mle = alpha_mle
-            melhor_xmin_corte = xmin_teste
-            n_cauda_final = N
-
-    return melhor_xmin_corte, melhor_alpha_mle, melhor_erro_ks, n_cauda_final
+    return melhor_xmin, melhor_alpha, menor_erro_ks, nos_cauda_final
 
 # =========================
-# 3. Executa o ajuste automático
+# 3. Executar ajuste
 # =========================
-xmin, alpha, erro_ks, n_cauda = executar_analise_mle_ks_automatico(graus, quantidades)
+xmin, alpha, erro_ks, n_cauda = buscar_xmin_alpha(graus, quantidades)
 
 # =========================
-# 4. Plotagem intuitiva
+# 4. Plotagem dos resultados
 # =========================
-plt.figure(figsize=(18,5))
+plt.figure(figsize=(18, 5))
 
-# --- Linear ---
+# --- Gráfico Linear ---
 plt.subplot(1,3,1)
-plt.plot(graus, quantidades/total_nos, 'o', color='green', alpha=0.6, label='Dados Observados')
-plt.axvline(xmin, color='purple', linestyle='--', label=f'Ponto de corte xmin = {xmin}')
-plt.title("Distribuição de frequência dos graus (Linear)")
+plt.plot(graus, quantidades / total_nos, 'o', color='green', alpha=0.6)
+plt.axvline(xmin, color='purple', linestyle='--', label=f'x_min = {xmin}')
+plt.title("Distribuição Linear")
 plt.xlabel("Grau k")
-plt.ylabel("Fração de nós com grau k")
+plt.ylabel("Fração de nós")
 plt.grid(True)
 plt.legend()
 
-# --- Log-Log ---
+# --- Gráfico Log-Log ---
 plt.subplot(1,3,2)
-plt.loglog(graus, quantidades/total_nos, 'o', color='green', alpha=0.6, label='Dados Observados')
-plt.axvline(xmin, color='purple', linestyle='--', label=f'Ponto de corte xmin = {xmin}')
-plt.title("Distribuição de frequência dos graus (Log-Log)")
+plt.loglog(graus, quantidades / total_nos, 'o', color='green', alpha=0.6)
+plt.axvline(xmin, color='purple', linestyle='--')
+plt.title("Distribuição Log-Log")
 plt.xlabel("Grau k")
-plt.ylabel("Fração de nós com grau k")
+plt.ylabel("Fração de nós")
 plt.grid(True, which="both", alpha=0.3)
-plt.legend()
 
 # --- Ajuste da Lei de Potência ---
 plt.subplot(1,3,3)
 k_reta = np.geomspace(xmin, graus.max(), 100)
-ajuste_vertical = (n_cauda / total_nos) / zeta(alpha, xmin)
-plt.loglog(k_reta, ajuste_vertical*(k_reta**-alpha), color='blue', linewidth=2, label=f'Modelo Lei de Potência (α={alpha:.2f})')
-plt.loglog(graus, quantidades/total_nos, 'o', color='gray', alpha=0.4, label='Dados Observados')
-plt.axvline(xmin, color='purple', linestyle='--', label=f'Ponto de corte xmin = {xmin}')
-plt.title("Ajuste da Lei de Potência à fração de nós")
+ajuste = (n_cauda / total_nos) / zeta(alpha, xmin)
+plt.loglog(k_reta, ajuste * (k_reta ** -alpha), color='blue', linewidth=2, label=f'Ajuste MLE α={alpha:.2f}')
+plt.loglog(graus, quantidades / total_nos, 'o', color='gray', alpha=0.4)
+plt.axvline(xmin, color='purple', linestyle='--')
+plt.title("Ajuste da Lei de Potência")
 plt.xlabel("Grau k")
-plt.ylabel("Fração de nós com grau k")
+plt.ylabel("Fração de nós")
 plt.grid(True, which="both", alpha=0.3)
 plt.legend()
 
@@ -114,8 +109,7 @@ plt.show()
 # =========================
 # 5. Resultados
 # =========================
-print("===== Resultados do Ajuste Automático =====")
 print(f"Ponto de corte xmin: {xmin}")
 print(f"Expoente Alpha (α): {alpha:.4f}")
-print(f"Erro KS: {erro_ks:.4f} (quanto menor, melhor)")
-print(f"Nós na cauda (k >= xmin): {n_cauda}")
+print(f"Erro KS: {erro_ks:.4f}")
+print(f"Nós na cauda: {n_cauda}")
