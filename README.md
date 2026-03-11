@@ -1,1 +1,1 @@
-# Projeto_Grafos
+java LeitorDeGrafo CA-GrQc.txt
