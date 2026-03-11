@@ -152,8 +152,7 @@ Esse script gera:
 * gráfico **linear**
 * gráfico **log-log**
 * **ajuste da lei de potência**
-
-Esse tipo de análise ajuda a verificar se a rede apresenta comportamento típico de **redes complexas**, onde poucos vértices possuem muitas conexões e a maioria possui poucas.
+* Com isso conseguimos verificar se segue uma lei de potência*
 
 ---
 
