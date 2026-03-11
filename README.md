@@ -1,6 +1,6 @@
 # Análise de Collaboration Networks com Grafos
 
-**Integrantes do grupo**
+**Integrantes do do grupo C**
 
 * José Eugênio — 2320466
 * Mateus Rocha Lessa — 2410456
