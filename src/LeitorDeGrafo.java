@@ -24,9 +24,9 @@ public class LeitorDeGrafo {
             ArrayList<int[]> arestas = new ArrayList<>();
             int maxId = 0;
 
-            // ==========================
+        
             // 1. Leitura das arestas
-            // ==========================
+        
             for (String linha : linhas) {
 
                 linha = linha.trim();
@@ -48,9 +48,9 @@ public class LeitorDeGrafo {
                 }
             }
 
-            // ==========================
-            // 2. Criação do grafo
-            // ==========================
+        
+            //2. Criação do grafo
+        
         int V = maxId + 1;
 Graph grafo = new Graph(V);
 
@@ -70,9 +70,9 @@ for (int[] aresta : arestas) {
             StdOut.println("Tamanho do Array de Vertices: " + grafo.V());
             StdOut.println("Numero de Arestas: " + grafo.E());
 
-            // ==========================
+            
             // 3. Cálculo dos graus
-            // ==========================
+          
             ArrayList<Integer> listaGraus = new ArrayList<>();
 
             int verticesReais = 0;
@@ -94,9 +94,9 @@ for (int[] aresta : arestas) {
                 }
             }
 
-            // ==========================
+           
 // 3.1 Grau médio e Densidade
-// ==========================
+
 
 double grauMedio = (2.0 * grafo.E()) / verticesReais;
 
@@ -111,18 +111,18 @@ StdOut.printf("Densidade: %.6f\n", densidade);
             StdOut.println("\nAutor mais colaborativo: " + verticeMaximo);
             StdOut.println("Numero de coautorias: " + grauMaximo);
 
-            // ==========================
+            
             // 4. Distribuição de graus
-            // ==========================
+            
             int[] frequencia = new int[grauMaximo + 1];
 
             for (int grau : listaGraus) {
                 frequencia[grau]++;
             }
 
-            // ==========================
+        
             // 5. Gerar arquivo TXT
-            // ==========================
+            
             PrintWriter writerTxt = new PrintWriter(new FileWriter("lista_graus.txt"));
 
             for (int grau : listaGraus) {
@@ -131,9 +131,9 @@ StdOut.printf("Densidade: %.6f\n", densidade);
 
             writerTxt.close();
 
-            // ==========================
+            
             // 6. Gerar arquivo CSV
-            // ==========================
+            
             PrintWriter writerCsv = new PrintWriter(new FileWriter("distribuicao_graus.csv"));
 
             writerCsv.println("grau,quantidade");

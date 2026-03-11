@@ -4,17 +4,16 @@ import matplotlib.pyplot as plt
 from scipy.special import zeta
 from scipy.optimize import minimize_scalar
 
-# =========================
-# 1. Carregar dados
-# =========================
+
+# 1 Carregar dados para ver probabilidade de um vértice ter grau k
+
 df = pd.read_csv("distribuicao_graus.csv")
-graus = df['grau'].values
-quantidades = df['quantidade'].values
+graus = df['grau'].values #valores de grau dos vértices
+quantidades = df['quantidade'].values #quantos vértices possuem cada grau
 total_nos = quantidades.sum()
 
-# =========================
 # 2. Função para encontrar o melhor xmin e α
-# =========================
+
 def buscar_xmin_alpha(graus, quantidades, min_n_cauda=15):
     # Variáveis para guardar o melhor resultado
     melhor_xmin = None
@@ -48,7 +47,10 @@ def buscar_xmin_alpha(graus, quantidades, min_n_cauda=15):
         ordem = np.argsort(graus_cauda)
         graus_ord = graus_cauda[ordem]
         cont_ord = contagem_cauda[ordem]
+
+        # probabilidade de um nó ter grau maior ou igual a k.
         observado = np.cumsum(cont_ord[::-1])[::-1] / N
+        
         esperado = zeta(alpha, graus_ord) / zeta(alpha, xmin)
         distancia_ks = np.max(np.abs(observado - esperado))
         
@@ -61,17 +63,16 @@ def buscar_xmin_alpha(graus, quantidades, min_n_cauda=15):
 
     return melhor_xmin, melhor_alpha, menor_erro_ks, nos_cauda_final
 
-# =========================
-# 3. Executar ajuste
-# =========================
+# 3 Executar ajuste
+
 xmin, alpha, erro_ks, n_cauda = buscar_xmin_alpha(graus, quantidades)
 
-# =========================
-# 4. Plotagem dos resultados
-# =========================
+
+# 4 Plotagem dos resultados
+
 plt.figure(figsize=(18, 5))
 
-# --- Gráfico Linear ---
+# Gráfico Linear
 plt.subplot(1,3,1)
 plt.plot(graus, quantidades / total_nos, 'o', color='green', alpha=0.6)
 plt.axvline(xmin, color='purple', linestyle='--', label=f'x_min = {xmin}')
@@ -81,7 +82,7 @@ plt.ylabel("Fração de nós")
 plt.grid(True)
 plt.legend()
 
-# --- Gráfico Log-Log ---
+# Gráfico Log-Log 
 plt.subplot(1,3,2)
 plt.loglog(graus, quantidades / total_nos, 'o', color='green', alpha=0.6)
 plt.axvline(xmin, color='purple', linestyle='--')
@@ -90,7 +91,7 @@ plt.xlabel("Grau k")
 plt.ylabel("Fração de nós")
 plt.grid(True, which="both", alpha=0.3)
 
-# --- Ajuste da Lei de Potência ---
+# Ajuste da Lei de Potência
 plt.subplot(1,3,3)
 k_reta = np.geomspace(xmin, graus.max(), 100)
 ajuste = (n_cauda / total_nos) / zeta(alpha, xmin)
@@ -106,10 +107,10 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# =========================
-# 5. Resultados
-# =========================
+
+# 5 Resultados
+
 print(f"Ponto de corte xmin: {xmin}")
 print(f"Expoente Alpha (α): {alpha:.4f}")
 print(f"Erro KS: {erro_ks:.4f}")
-print(f"Nós na cauda: {n_cauda}")
+print(f"Nós na cauda; {n_cauda}")
