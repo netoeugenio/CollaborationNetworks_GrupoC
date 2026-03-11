@@ -66,17 +66,6 @@ CA-GrQc.txt
 
 Ele representa uma **rede de colaboração científica**.
 
-Cada linha do arquivo representa uma colaboração entre dois autores.
-
-Exemplo:
-
-```
-3466 937
-3466 5233
-5233 8573
-```
-
-Cada par de números indica **uma aresta no grafo**.
 
 ---
 
